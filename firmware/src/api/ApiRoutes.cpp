@@ -30,7 +30,7 @@ void ApiRoutes::registerRoutes(AsyncWebServer& server,
         doc["success"] = true;
         JsonObject data = doc["data"].to<JsonObject>();
         data["robot_name"] = "Strider32";
-        data["firmware_version"] = "0.1.0";
+        data["firmware_version"] = "0.2.0";
         data["uptime_seconds"] = millis() / 1000;
         data["free_heap_bytes"] = ESP.getFreeHeap();
         data["estop_active"] = safetySystem->isEmergencyStopActive();
@@ -59,7 +59,7 @@ void ApiRoutes::registerRoutes(AsyncWebServer& server,
         data["min_free_heap_bytes"] = ESP.getMinFreeHeap();
         data["cpu_freq_mhz"] = ESP.getCpuFreqMHz();
         data["chip_revision"] = ESP.getChipRevision();
-        data["firmware_version"] = "0.1.0";
+        data["firmware_version"] = "0.2.0";
         data["wifi_mode"] = netMgr->isAPMode() ? "AP" : "STA";
         data["wifi_connected"] = netMgr->isConnected();
         data["rssi_dbm"] = netMgr->getRSSI();

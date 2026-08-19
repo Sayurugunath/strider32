@@ -26,7 +26,7 @@
         <div class="brand">
             <div class="status-dot offline" id="statusDot"></div>
             <div class="brand-title">
-                <h1>STRIDER32 <span>HUD v0.1.0</span></h1>
+                <h1>STRIDER32 <span>HUD v0.2.0</span></h1>
                 <small id="headerIp">192.168.4.1</small>
             </div>
         </div>
@@ -90,8 +90,8 @@
                     <div class="form-group">
                         <label>Active Gait Algorithm:</label>
                         <select id="dashGaitSelect" class="form-control" onchange="App.changeGait(this.value)">
-                            <option value="0">TROT GAIT (Dynamic 2-Pair)</option>
-                            <option value="1">CRAWL GAIT (Static 4-Phase)</option>
+                            <option value="0">TROT GAIT (Dynamic 2-Pair IK)</option>
+                            <option value="1">CRAWL GAIT (Static 4-Phase IK)</option>
                             <option value="2">WAVE GAIT</option>
                         </select>
                     </div>

@@ -4,64 +4,55 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![PlatformIO](https://img.shields.io/badge/PlatformIO-ESP32-orange.svg)](https://platformio.org/)
 
-**Version:** 0.1.0  
+**Version:** 0.1.0 (v0.2 IK Engine Integration)  
 **Project Lead:** Sayuru Gunathilaka  
 
-An open-source, independently designed **ESP32 8-DOF micro-quadruped robotics platform** featuring direct GPIO PWM servo actuation, a latched hardware E-STOP safety system, static/dynamic gait motion engines, a RESTful API, and an embedded Vanilla JavaScript Web Control Center served directly from ESP32 LittleFS flash storage.
+An open-source, independently designed **ESP32 8-DOF micro-quadruped robotics platform** featuring analytical 3D Inverse Kinematics (IK), direct GPIO PWM servo actuation, a latched hardware E-STOP safety system, static/dynamic gait motion engines, a RESTful API, and an embedded Vanilla JavaScript Web Control Center served directly from ESP32 LittleFS flash storage.
 
 > [!NOTE]
-> **Hardware Testing Notice:** The C++ firmware, REST API, Web HUD, and LittleFS file storage architecture are fully verified via software compilation (`0 errors, 0 warnings`, `58.5% flash usage`). Physical quadruped walking on real hardware is currently **NOT HARDWARE TESTED / PENDING HARDWARE VALIDATION**.
+> **Hardware Testing Notice:** Software verified; physical quadruped walking has not yet been hardware validated. The C++ firmware, 3D IK solver, REST API, Web HUD, and LittleFS storage architecture are fully verified via software compilation (`0 errors, 0 warnings`, `58.7% flash usage`).
 
 ---
 
 ## 🌟 Key Features
 
+* **Analytical 3D Inverse Kinematics (IK):** Analytical solver (`Kinematics::solveLegIK`) converting 3D Cartesian coordinates $(x, y, z)$ to exact joint angles $(\theta_{\text{coxa}}, \theta_{\text{femur}})$ with workspace reach protection.
 * **Direct GPIO PWM Actuation (Default):** Controls 8 micro-servos directly using the ESP32 LEDC PWM peripheral (50 Hz, 14-bit timer resolution).
 * **Hardware Abstraction Layer (`IServoDriver`):** Clean interface allowing seamless switching between `ESP32DirectServoDriver` (primary direct GPIO) and `PCA9685ServoDriver` (optional 16-channel I2C module).
 * **Latched E-STOP Safety System:** Hardware emergency stop button on GPIO 34 (input-only GPI with external pull-up). Disables PWM outputs instantly and requires explicit physical release and API reset (`POST /api/v1/estop/reset`).
-* **Motion Engine & Gaits:** 4-leg static stability crawl gait, dynamic trot gait, lateral strafing (left/right), and rotational turning (yaw left/right) with smooth non-blocking soft-start ramping ($1.5^\circ / 10\text{ms}$).
-* **Embedded Web Control Center (HUD):** Responsive, dark cyber-industrial UI built with browser-native HTML5/CSS3/Vanilla ES6+ JS. No heavy external frameworks—served directly from LittleFS (`1.92 MB`).
+* **Motion Engine & Gaits:** Cartesian trajectory-driven 4-leg static stability crawl gait, dynamic trot gait, lateral strafing (left/right), and rotational turning (yaw left/right) with smooth non-blocking soft-start ramping.
+* **Embedded Web Control Center (HUD):** Responsive, dark cyber-industrial UI built with browser-native HTML5/CSS3/Vanilla ES6+ JS. Served directly from LittleFS (`1.92 MB`).
 * **Timeline Animation Studio:** Create, edit, save, and play keyframe animation sequences stored as JSON files on LittleFS flash.
 * **RESTful API Suite:** Full API for system status, diagnostics telemetry, servo calibration, motion control, network management, and animation CRUD.
-* **Resource Optimized:** Fits in $< 60\%$ of ESP32 Flash memory (`1.18 MB / 2.03 MB`), providing **842 KB of free headroom** for future development.
+* **Resource Optimized:** Fits in $< 60\%$ of ESP32 Flash memory (`1.19 MB / 2.03 MB`), providing **840 KB of free headroom** for future development.
 
 ---
 
-## 📐 Architecture Overview
+## 📐 Architecture & IK Coordinate System
 
 ```
-                      +------------------------------------------+
-                      |       Strider32 Web Control Center       |
-                      |   (HTML5 / CSS3 / Vanilla ES6+ JS)       |
-                      +--------------------+---------------------+
-                                           | HTTP REST API
-                                           v
-                      +--------------------+---------------------+
-                      |         ESPAsyncWebServer & API          |
-                      +----+-------------------+-----------------+
-                           |                   |
-                           v                   v
-            +--------------+----+     +--------+------------------+
-            |   Gait Engine &   |     |      Config Manager       |
-            | Animation Player  |     |   (LittleFS Flash Storage)|
-            +--------------+----+     +--------+------------------+
-                           |                   |
-                           v                   v
-            +--------------+-------------------+------------------+
-            |            Safety System & Guard                  |
-            +----------------------+------------------------------+
-                                   |
-                                   v
-            +----------------------+------------------------------+
-            |          IServoDriver Abstraction Layer             |
-            +----------+-------------------------------+----------+
-                       |                               |
-                       v                               v
-         +-------------+---------------+   +-----------+----------+
-         | ESP32DirectServoDriver      |   | PCA9685ServoDriver   |
-         | (Direct GPIO LEDC PWM)      |   | (Optional I2C Module)|
-         +-----------------------------+   +----------------------+
+               [ Body Chassis ]
+                      |
+                      | Hip Origin (0, 0, 0)
+                      v
+                ( Coxa Joint )  <--- theta_coxa (horizontal plane)
+                      |
+                      |  <-- L1 (Coxa offset link = 30mm)
+                      v
+               ( Femur Joint )  <--- theta_femur (vertical elevation)
+                      \
+                       \  <-- L2 (Femur link = 60mm)
+                        \
+                         v
+                    ( Foot Tip ) (X, Y, Z)
 ```
+
+| Leg ID | Joint Index | Joint Name | Neutral Angle | Coordinate Mapping |
+|---|---|---|---|---|
+| **FL** | J0 / J1 | Front-Left Coxa / Femur | $90^\circ / 90^\circ$ | $(+X, +Y, Z)$ |
+| **FR** | J2 / J3 | Front-Right Coxa / Femur | $90^\circ / 90^\circ$ | $(+X, -Y, Z)$ |
+| **BL** | J4 / J5 | Back-Left Coxa / Femur | $90^\circ / 90^\circ$ | $(+X, +Y, Z)$ |
+| **BR** | J6 / J7 | Back-Right Coxa / Femur | $90^\circ / 90^\circ$ | $(+X, -Y, Z)$ |
 
 ---
 
@@ -119,26 +110,6 @@ Connect to the Strider32 Access Point (`SSID: Strider32-AP`) and open `http://19
 * `POST /api/v1/estop` & `POST /api/v1/estop/reset` — E-STOP trigger and latched reset.
 * `GET /api/v1/servos` & `POST /api/v1/servos/calibrate` — Calibration subtrim offsets.
 * `GET /api/v1/animations` & `POST /api/v1/animations` — LittleFS keyframe sequence CRUD.
-
----
-
-## 🗺️ Project Roadmap
-
-- [x] **v0.1.0 Core Firmware & Software Stack**
-  - Direct ESP32 GPIO PWM Servo Driver with soft-start ramping.
-  - Latched E-STOP Safety System (GPIO 34).
-  - 4-leg static stability crawl gait, trot gait, strafing, and rotation.
-  - RESTful API & embedded Vanilla JS Web Control Center.
-  - LittleFS keyframe animation storage.
-  - Resource optimization ($< 60\%$ Flash usage).
-- [ ] **v0.2.0 Hardware Bring-Up & Validation**
-  - Physical 8-servo assembly calibration.
-  - BEC power rail load testing.
-  - Physical walking gait tuning.
-- [ ] **v0.3.0 Kinematics & Extended Telemetry**
-  - 3D Inverse Kinematics (IK) leg solver.
-  - MPU6050 IMU auto-balancing.
-  - WebSocket telemetry streaming.
 
 ---
 

@@ -22,23 +22,26 @@ AsyncWebServer  g_webServer(80);
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("\n--- Initializing Strider32 Quadruped Robotics Platform (v0.1.0) ---");
+    Serial.println("\n--- Initializing Strider32 Quadruped Robotics Platform (v0.2.0) ---");
 
-    // 1. Initialize Persistent Config Storage
+    // 1. Run Automated IK/FK Mathematical Validation Self-Test
+    Kinematics::runSelfTest();
+
+    // 2. Initialize Persistent Config Storage
     g_configMgr.begin();
 
-    // 2. Load Saved Hardware & Servo Calibration Config (Default backend: ESP32_DIRECT_LEDC)
+    // 3. Load Saved Hardware & Servo Calibration Config (Default backend: ESP32_DIRECT_LEDC)
     ServoConfig sCfg;
     g_configMgr.loadServoConfig(sCfg);
     g_servoDriver.updateConfig(sCfg);
 
-    // 3. Initialize Servo Hardware Driver (Attaches GPIO PWM or PCA9685 I2C)
+    // 4. Initialize Servo Hardware Driver (Attaches GPIO PWM or PCA9685 I2C)
     g_servoDriver.begin();
 
-    // 4. Initialize Safety System
+    // 5. Initialize Safety System
     g_safetySystem.begin(&g_servoDriver);
 
-    // 5. Initialize Motion Engine
+    // 6. Initialize Motion Engine
     g_gaitEngine.begin(&g_servoDriver);
     g_animPlayer.begin(&g_servoDriver);
 
@@ -47,12 +50,12 @@ void setup() {
     Kinematics::getPoseAngles(RobotPose::STAND, standAngles);
     g_servoDriver.setAllAngles(standAngles);
 
-    // 6. Initialize Network Manager
+    // 7. Initialize Network Manager
     NetworkConfig netCfg;
     g_configMgr.loadNetworkConfig(netCfg);
     g_networkMgr.begin(netCfg);
 
-    // 7. Register REST & Static Web Server API Routes
+    // 8. Register REST & Static Web Server API Routes
     ApiRoutes::registerRoutes(g_webServer, &g_servoDriver, &g_safetySystem, &g_gaitEngine, &g_animPlayer, &g_configMgr, &g_networkMgr);
     g_webServer.begin();
 

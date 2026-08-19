@@ -1,27 +1,29 @@
-# Servo Calibration Guide
+# Servo Calibration & IK Alignment Guide
 
-Accurate servo calibration is essential for stable walking gaits and posture balance.
+> [!NOTE]
+> **Hardware Validation Notice:** Software verified; physical quadruped walking has not yet been hardware validated.
 
-## Calibration Workflow
+Accurate servo calibration and subtrim alignment are essential for mapping analytical 3D Inverse Kinematics (IK) joint output angles to physical PWM signals on the 8-DOF quadruped frame.
 
-1. **Mechanical Zeroing:**
-   - When assembling mechanical horns onto servo splines, ensure the robot leg is attached as close as possible to right angles (90°).
+---
 
-2. **Connecting to Calibration Studio:**
-   - Power up the robot and open the browser interface at `http://quadrobot.local` or `http://192.168.4.1`.
-   - Navigate to the **Servo Calibration Studio** tab.
+## 1. Calibration & Mechanical Zeroing Workflow
 
-3. **Adjusting Joint Subtrim Offsets:**
-   - Use the individual slider controls for each of the 8 joint servos:
-     - **FL Coxa / Femur** (Front-Left)
-     - **FR Coxa / Femur** (Front-Right)
-     - **BL Coxa / Femur** (Back-Left)
-     - **BR Coxa / Femur** (Back-Right)
-   - Adjust the offset sliders in 1° increments until the joint aligns perfectly.
+1. **Mechanical Horn Zeroing:**
+   - Mount servo horns onto splines so that legs align as close as possible to $90^\circ$ perpendicular angles in the neutral standing posture.
+
+2. **Connecting to Web Calibration Studio:**
+   - Connect to `http://192.168.4.1` (or `http://strider32.local`) and navigate to the **Calibration Studio** tab.
+
+3. **Subtrim Offset Adjustment:**
+   - Adjust subtrim offsets ($-30^\circ$ to $+30^\circ$) for each of the 8 joint servos:
+     - **J0 / J1:** FL Coxa / Femur (Front-Left)
+     - **J2 / J3:** FR Coxa / Femur (Front-Right)
+     - **J4 / J5:** BL Coxa / Femur (Back-Left)
+     - **J6 / J7:** BR Coxa / Femur (Back-Right)
 
 4. **Testing Poses:**
-   - Click **Test Stand Pose** to verify that all 4 leg feet touch the ground evenly.
-   - Click **Test Rest Pose** to verify that legs fold cleanly without mechanical binding.
+   - Click **Stand Stance** to verify that all 4 leg feet reach target $(X=60\text{mm}, Y=0, Z=-40\text{mm})$ evenly.
 
 5. **Saving Configuration:**
-   - Click **Save Calibration** to commit subtrim values to persistent LittleFS flash storage (`config/servos.json`).
+   - Click **Save Calibration** to store subtrim values to persistent LittleFS flash storage (`config/servos.json`).
