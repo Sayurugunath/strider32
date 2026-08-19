@@ -1,0 +1,348 @@
+/* ==========================================================================
+   STRIDER32 3D SIMULATOR DESIGN SYSTEM
+   Dark Cyber-Industrial Theme matching Strider32 Web Control Center
+   Author: Sayuru Gunathilaka
+   ========================================================================== */
+
+:root {
+    --bg-color: #0b0f19;
+    --card-bg: #131b2e;
+    --card-header-bg: #1e293b;
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: #1e293b;
+    
+    --cyan: #06b6d4;
+    --cyan-glow: rgba(6, 182, 212, 0.2);
+    --emerald: #10b981;
+    --emerald-glow: rgba(16, 185, 129, 0.2);
+    --purple: #a855f7;
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    --rose-glow: rgba(244, 63, 94, 0.2);
+    
+    --font-mono: 'JetBrains Mono', monospace, sans-serif;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* E-STOP Alert Banner */
+.estop-banner {
+    background-color: var(--rose);
+    color: #fff;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 1000;
+}
+
+.estop-banner.hidden {
+    display: none;
+}
+
+/* Header Navbar */
+.app-header {
+    background-color: #0f172a;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-title h1 {
+    font-size: 1.15rem;
+    font-family: var(--font-mono);
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+}
+
+.brand-title span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background-color: #1e293b;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+}
+
+.mode-selector {
+    display: flex;
+    background-color: #1e293b;
+    border-radius: 6px;
+    padding: 3px;
+    gap: 4px;
+}
+
+.mode-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+    background-color: var(--cyan);
+    color: #000;
+}
+
+.mode-btn.real-mode.active {
+    background-color: var(--rose);
+    color: #fff;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.estop-btn {
+    background-color: var(--rose);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 0 12px var(--rose-glow);
+}
+
+.estop-btn:hover {
+    background-color: #e11d48;
+}
+
+/* Main Layout Grid */
+.app-container {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    flex: 1;
+    min-height: 0;
+}
+
+@media (max-width: 900px) {
+    .app-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+}
+
+/* Viewport Area */
+.viewport-container {
+    position: relative;
+    background-color: #000;
+    width: 100%;
+    height: 100%;
+}
+
+#webglCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.viewport-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.overlay-btn {
+    background-color: rgba(19, 27, 46, 0.85);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+}
+
+.overlay-btn:hover {
+    border-color: var(--cyan);
+}
+
+/* Control Sidebar */
+.sidebar-container {
+    background-color: var(--card-bg);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tab-nav {
+    display: flex;
+    background-color: #0f172a;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+    background-color: var(--card-bg);
+}
+
+.tab-content {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: none;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* UI Elements */
+.card {
+    background-color: #0d1322;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.card-title {
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    color: var(--cyan);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn {
+    background-color: #1e293b;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn:hover { border-color: var(--cyan); }
+.btn-cyan { background-color: var(--cyan); color: #000; border: none; }
+.btn-emerald { background-color: var(--emerald); color: #000; border: none; }
+.btn-purple { background-color: var(--purple); color: #fff; border: none; }
+.btn-danger { background-color: var(--rose); color: #fff; border: none; }
+
+.dpad-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    width: 210px;
+    margin: 0 auto;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.form-group label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.form-control {
+    background-color: #1e293b;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--cyan);
+}
+
+.badge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.badge-emerald { background-color: var(--emerald-glow); color: var(--emerald); border: 1px solid var(--emerald); }
+.badge-cyan { background-color: var(--cyan-glow); color: var(--cyan); border: 1px solid var(--cyan); }
+.badge-rose { background-color: var(--rose-glow); color: var(--rose); border: 1px solid var(--rose); }
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+}
+
+.telemetry-item {
+    background-color: #131b2e;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}

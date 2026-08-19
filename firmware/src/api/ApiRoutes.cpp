@@ -30,7 +30,7 @@ void ApiRoutes::registerRoutes(AsyncWebServer& server,
         doc["success"] = true;
         JsonObject data = doc["data"].to<JsonObject>();
         data["robot_name"] = "Strider32";
-        data["firmware_version"] = "0.2.0";
+        data["firmware_version"] = "0.3.0";
         data["uptime_seconds"] = millis() / 1000;
         data["free_heap_bytes"] = ESP.getFreeHeap();
         data["estop_active"] = safetySystem->isEmergencyStopActive();

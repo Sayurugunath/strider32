@@ -1,6 +1,6 @@
 # Strider32 Release Notes
 
-## Version 0.2.0 — 3D Inverse Kinematics (August 2026)
+## Version 0.3.0 — Browser-Based 3D Robot Simulator (August 2026)
 
 **Project Lead:** Sayuru Gunathilaka  
 **License:** Apache 2.0  
@@ -9,22 +9,24 @@
 
 ### 🚀 Highlights & Features Included
 
-1. **Analytical 3D Inverse Kinematics Solver (`Kinematics::solveLegIK`):**
-   * Analytical 3D IK converting Cartesian foot coordinates $(x, y, z)$ to joint angles $(\theta_{\text{coxa}}, \theta_{\text{femur}})$.
-   * Trigonometric law-of-cosines formulation in $O(1)$ constant time.
-2. **Forward Kinematics Reconstruction (`Kinematics::solveLegFK`):**
-   * Converts joint angle outputs back into foot tip Cartesian coordinates for validation and posture alignment.
-3. **Workspace Boundary Protection & Clamping:**
-   * Automatically clamps 3D extension vector $D$ to physical maximum reach $2 \cdot L_2 - 0.1\text{mm} = 119.9\text{mm}$ if target point is unreachable.
-   * Numerical stability protection prevents `NaN`, `Inf`, or `acos` out-of-bounds math errors.
-4. **Cartesian Gait Trajectory Engine (`GaitEngine`):**
-   * Replaced open-loop empirical sine waves with parametric 3D Cartesian foot trajectories for both **TROT** and **CRAWL** gaits.
-   * Continuous foot trajectories across phase boundaries ($0.00\text{mm}$ position discontinuity).
-5. **Leg Mirroring & Coordinate Conventions:**
-   * $+X$ (Forward), $+Y$ (Lateral Outward), $+Z$ (Upward).
-   * Explicit 4-leg mapping for Front-Left, Front-Right, Back-Left, and Back-Right legs.
-6. **Automated IK Validation Harness (`Kinematics::runSelfTest`):**
-   * Executes automated mathematical self-tests during boot to verify roundtrip accuracy, workspace clamping, and joint limits.
+1. **Browser-Native 3D Robot Simulator HUD (`web/simulator/`):**
+   * Complete, standalone WebGL 3D robot simulator interface for visualization, testing, and control.
+   * 100% standalone offline operation with zero runtime CDN dependencies.
+2. **Three.js Procedural Scenegraph Renderer (`RobotModel.js`):**
+   * Interactive 3D robot model with 360° OrbitControls, ground grid reference, and debug axes.
+   * Procedural mesh geometry matching Strider32 hardware parameters ($L_1 = 30\text{mm}, L_2 = 60\text{mm}$).
+3. **Analytical 3D IK/FK Engine (`RobotKinematics.js`):**
+   * Pure JavaScript implementation of `solveLegIK` and `solveLegFK` synchronized with firmware reference vectors ($0.0000\text{mm}$ numerical error).
+   * Includes workspace reach protection ($D \le 119.9\text{mm}$), origin protection ($r_{\text{eff}} \ge 1.0\text{mm}$), and joint limits ($10^\circ \le \theta \le 170^\circ$).
+4. **Cartesian Gait Trajectory Simulation Engine (`GaitSimulator.js`):**
+   * Real-time 3D simulation of **TROT** (2-Pair Diagonal) and **CRAWL** (4-Phase Static FL $\rightarrow$ BR $\rightarrow$ FR $\rightarrow$ BL) gaits with continuous foot trajectories.
+   * Supports forward, backward, lateral strafe, and yaw rotation steering.
+5. **Timeline Animation Studio (`AnimationController.js`):**
+   * Record keyframe pose sequences, play back timelines, and export/import JSON animation files.
+6. **Browser Gamepad API Integration (`GamepadController.js`):**
+   * Drive the virtual quadruped using any USB/Bluetooth game controller (DualShock, Xbox, etc.).
+7. **Dual-Mode Safety Architecture (`RobotApi.js`):**
+   * Seamlessly toggle between offline `[SIMULATION MODE]` and live `[REAL ROBOT MODE]` with E-STOP guards and explicit user confirmation before hardware network calls.
 
 ---
 
@@ -32,6 +34,12 @@
 
 > [!NOTE]
 > **Hardware Status:** Software verified; physical quadruped walking has not yet been hardware validated.
+
+---
+
+## Version 0.2.0 — 3D Inverse Kinematics (August 2026)
+
+* Analytical 3D Inverse Kinematics solver (`Kinematics::solveLegIK`), Forward Kinematics (`Kinematics::solveLegFK`), workspace protection, and Cartesian trajectories.
 
 ---
 

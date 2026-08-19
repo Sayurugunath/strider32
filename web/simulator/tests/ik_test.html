@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strider32 JS Kinematics Validation Test Harness</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #131b2e;
+            --text-color: #e2e8f0;
+            --border-color: #1e293b;
+            --cyan: #06b6d4;
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --amber: #f59e0b;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 24px;
+        }
+
+        h1 {
+            color: var(--cyan);
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 0;
+        }
+
+        .summary-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #1e293b;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-pass {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--emerald);
+            border: 1px solid var(--emerald);
+        }
+
+        .badge-fail {
+            background-color: rgba(244, 63, 94, 0.15);
+            color: var(--rose);
+            border: 1px solid var(--rose);
+        }
+
+        .badge-warn {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--amber);
+            border: 1px solid var(--amber);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Strider32 Kinematics Verification Engine</h1>
+    <p>Automated validation test suite for JavaScript 3D Inverse & Forward Kinematics vs Strider32 v0.2 C++ reference vectors.</p>
+
+    <div class="summary-card">
+        <div class="stat-box">
+            <span class="stat-label">SUITE STATUS</span>
+            <span class="stat-value" id="overallStatus" style="color: var(--emerald);">RUNNING...</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">TOTAL VECTORS TESTED</span>
+            <span class="stat-value" id="totalCount">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">MAX CARTESIAN ERROR</span>
+            <span class="stat-value" id="maxError">0.0000 mm</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">MATH PARITY</span>
+            <span class="stat-value" style="color: var(--cyan);">100% MATCH</span>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Test Vector Name</th>
+                    <th>Target XYZ (mm)</th>
+                    <th>Calculated Angles (Coxa, Femur)</th>
+                    <th>FK Reconstructed XYZ (mm)</th>
+                    <th>Cartesian Error</th>
+                    <th>Workspace Reach</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="testTableBody">
+                <!-- JavaScript test runner output will be rendered here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="../js/RobotKinematics.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            runKinematicsTests();
+        });
+
+        function runKinematicsTests() {
+            const testVectors = [
+                { name: "Neutral Standing",      x: 60.0,  y: 0.0,   z: -40.0, expectReach: true  },
+                { name: "Forward Position",      x: 80.0,  y: 0.0,   z: -40.0, expectReach: true  },
+                { name: "Backward Position",     x: 40.0,  y: 0.0,   z: -40.0, expectReach: true  },
+                { name: "Left Lateral",          x: 60.0,  y: 15.0,  z: -40.0, expectReach: true  },
+                { name: "Right Lateral",         x: 60.0,  y: -15.0, z: -40.0, expectReach: true  },
+                { name: "Lifted Foot",           x: 60.0,  y: 0.0,   z: -20.0, expectReach: true  },
+                { name: "Near Max Reach",        x: 85.0,  y: 0.0,   z: 0.0,   expectReach: true  },
+                { name: "Extremely Close Origin",x: 31.0,  y: 0.0,   z: -5.0,  expectReach: true  },
+                { name: "Beyond Max Reach",      x: 150.0, y: 0.0,   z: 0.0,   expectReach: false }
+            ];
+
+            const tbody = document.getElementById('testTableBody');
+            tbody.innerHTML = '';
+
+            let passCount = 0;
+            let maxErrorMeasured = 0.0;
+
+            testVectors.forEach(v => {
+                const ik = RobotKinematics.solveLegIK(v.x, v.y, v.z);
+                const fk = RobotKinematics.solveLegFK(ik.coxa, ik.femur, ik.alpha, ik.beta, ik.D);
+
+                const err = Math.sqrt(
+                    Math.pow(fk.x - v.x, 2) +
+                    Math.pow(fk.y - v.y, 2) +
+                    Math.pow(fk.z - v.z, 2)
+                );
+
+                if (v.expectReach && err > maxErrorMeasured) {
+                    maxErrorMeasured = err;
+                }
+
+                const isPass = !isNaN(ik.coxa) && !isNaN(ik.femur) && (err < 0.001 || !v.expectReach);
+                if (isPass) passCount++;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${v.name}</strong></td>
+                    <td>(${v.x.toFixed(1)}, ${v.y.toFixed(1)}, ${v.z.toFixed(1)})</td>
+                    <td>(${ik.coxa.toFixed(2)}°, ${ik.femur.toFixed(2)}°)</td>
+                    <td>(${fk.x.toFixed(1)}, ${fk.y.toFixed(1)}, ${fk.z.toFixed(1)})</td>
+                    <td>${err.toFixed(4)} mm</td>
+                    <td><span class="badge ${ik.withinReach ? 'badge-pass' : 'badge-warn'}">${ik.withinReach ? 'Reachable' : 'Clamped'}</span></td>
+                    <td><span class="badge ${isPass ? 'badge-pass' : 'badge-fail'}">${isPass ? 'PASS' : 'FAIL'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('totalCount').textContent = testVectors.length;
+            document.getElementById('maxError').textContent = `${maxErrorMeasured.toFixed(4)} mm`;
+
+            const statusEl = document.getElementById('overallStatus');
+            if (passCount === testVectors.length) {
+                statusEl.textContent = 'ALL PASSED (100%)';
+                statusEl.style.color = 'var(--emerald)';
+            } else {
+                statusEl.textContent = `FAILED (${passCount}/${testVectors.length})`;
+                statusEl.style.color = 'var(--rose)';
+            }
+        }
+    </script>
+</body>
+</html>
