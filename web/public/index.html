@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strider32 — Web Control Center</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <!-- E-STOP Banner Alert (Hidden by default, shown when ESTOPPED) -->
+    <div class="estop-banner hidden" id="estopBanner">
+        <div class="estop-banner-content">
+            <span class="estop-icon">⚠️</span>
+            <div class="estop-text">
+                <strong>EMERGENCY STOP ACTIVATED</strong>
+                <span>All servo PWM outputs have been disabled for safety.</span>
+            </div>
+            <button class="btn btn-emerald btn-sm" id="bannerResetBtn">RESET EMERGENCY STOP</button>
+        </div>
+    </div>
+
+    <!-- Application Header Navbar -->
+    <header class="app-header">
+        <div class="brand">
+            <div class="status-dot offline" id="statusDot"></div>
+            <div class="brand-title">
+                <h1>STRIDER32 <span>HUD v0.1.0</span></h1>
+                <small id="headerIp">192.168.4.1</small>
+            </div>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="nav-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="nav-btn" data-tab="motion">Motion</button>
+            <button class="nav-btn" data-tab="calibration">Calibration</button>
+            <button class="nav-btn" data-tab="animation">Animations</button>
+            <button class="nav-btn" data-tab="diagnostics">Diagnostics</button>
+            <button class="nav-btn" data-tab="network">Network</button>
+        </nav>
+
+        <div class="header-actions">
+            <button class="estop-btn" id="estopBtn">EMERGENCY STOP</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="app-container">
+
+        <!-- 1. DASHBOARD TAB -->
+        <section class="tab-pane active" id="tab-dashboard">
+            <div class="metrics-grid">
+                <div class="card metric-card">
+                    <span class="card-label">SYSTEM STATE</span>
+                    <span class="metric-value status-online" id="dashState">READY</span>
+                    <span class="metric-sub" id="dashStateSub">System Operational</span>
+                </div>
+                <div class="card metric-card">
+                    <span class="card-label">WI-FI RSSI</span>
+                    <span class="metric-value" id="dashRssi">-- dBm</span>
+                    <span class="metric-sub" id="dashWifiMode">AP Mode</span>
+                </div>
+                <div class="card metric-card">
+                    <span class="card-label">SYSTEM UPTIME</span>
+                    <span class="metric-value" id="dashUptime">00:00:00</span>
+                    <span class="metric-sub">ESP32 Core</span>
+                </div>
+                <div class="card metric-card">
+                    <span class="card-label">FREE MEMORY</span>
+                    <span class="metric-value" id="dashHeap">-- KB</span>
+                    <span class="metric-sub" id="dashMinHeap">SRAM Available</span>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="card">
+                    <h3>Quick Stance Actions</h3>
+                    <div class="btn-group">
+                        <button class="btn btn-cyan motion-req" onclick="App.triggerPose('STAND')">Stand Stance</button>
+                        <button class="btn btn-secondary motion-req" onclick="App.triggerPose('REST')">Rest / Floor Pose</button>
+                        <button class="btn btn-secondary motion-req" onclick="App.triggerPose('SIT')">Sit Stance</button>
+                        <button class="btn btn-purple motion-req" onclick="App.triggerPose('WAVE')">Wave Emote</button>
+                        <button class="btn btn-purple motion-req" onclick="App.triggerPose('DANCE')">Dance Emote</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Motion & Gait Configuration</h3>
+                    <div class="form-group">
+                        <label>Active Gait Algorithm:</label>
+                        <select id="dashGaitSelect" class="form-control" onchange="App.changeGait(this.value)">
+                            <option value="0">TROT GAIT (Dynamic 2-Pair)</option>
+                            <option value="1">CRAWL GAIT (Static 4-Phase)</option>
+                            <option value="2">WAVE GAIT</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Movement Speed: <span id="speedVal" class="highlight-val">50%</span></label>
+                        <input type="range" id="speedSlider" min="10" max="100" value="50" oninput="App.changeSpeed(this.value)">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. MOTION CONTROL TAB -->
+        <section class="tab-pane" id="tab-motion">
+            <div class="grid-2col">
+                <!-- Directional D-Pad -->
+                <div class="card dpad-card">
+                    <h3>Planar Directional Control</h3>
+                    <div class="dpad-container">
+                        <div class="dpad-grid">
+                            <div></div>
+                            <button class="btn dpad-btn motion-req" onclick="App.sendMotion('walk', 1.0, 0, 0)">▲ Forward</button>
+                            <div></div>
+                            
+                            <button class="btn dpad-btn motion-req" onclick="App.sendMotion('walk', 0, -1.0, 0)">◄ Strafe L</button>
+                            <button class="btn dpad-btn btn-danger" onclick="App.sendMotion('stop', 0, 0, 0)">■ STOP</button>
+                            <button class="btn dpad-btn motion-req" onclick="App.sendMotion('walk', 0, 1.0, 0)">Strafe R ►</button>
+                            
+                            <div></div>
+                            <button class="btn dpad-btn motion-req" onclick="App.sendMotion('walk', -1.0, 0, 0)">▼ Backward</button>
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yaw Rotation & Height Bias -->
+                <div class="card">
+                    <h3>Yaw Rotation & Stance Bias</h3>
+                    <div class="control-group-box">
+                        <label>Rotational Steering:</label>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary motion-req" onclick="App.sendMotion('walk', 0, 0, -1.0)">Rotate Left ↺</button>
+                            <button class="btn btn-secondary motion-req" onclick="App.sendMotion('walk', 0, 0, 1.0)">Rotate Right ↻</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group-box style-top-gap">
+                        <label>Fast Action Triggers:</label>
+                        <div class="btn-group">
+                            <button class="btn btn-danger motion-req" onclick="App.sendMotion('stop', 0, 0, 0)">Emergency Freeze</button>
+                            <button class="btn btn-cyan motion-req" onclick="App.triggerPose('STAND')">Reset to Stand</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SERVO CALIBRATION STUDIO TAB -->
+        <section class="tab-pane" id="tab-calibration">
+            <div class="card">
+                <div class="card-header-flex">
+                    <div>
+                        <h3>8-Joint Servo Calibration Studio</h3>
+                        <small class="text-muted">Adjust individual subtrim offsets (-30° to +30°) with live hardware updates.</small>
+                    </div>
+                    <div class="btn-group-sm">
+                        <button class="btn btn-emerald btn-sm motion-req" onclick="App.saveCalibration()">Save to Flash (NVS)</button>
+                        <button class="btn btn-secondary btn-sm" onclick="App.fetchServos()">Reload Offsets</button>
+                    </div>
+                </div>
+
+                <div class="servo-grid" id="servoCalibGrid">
+                    <!-- 8 Servo Cards populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. TIMELINE ANIMATION STUDIO TAB -->
+        <section class="tab-pane" id="tab-animation">
+            <div class="card">
+                <div class="card-header-flex">
+                    <div>
+                        <h3>Timeline Keyframe Editor</h3>
+                        <small class="text-muted">Compose motion sequences and manage LittleFS animation files.</small>
+                    </div>
+                    <div class="btn-group-sm">
+                        <button class="btn btn-cyan btn-sm" onclick="App.createNewAnimation()">+ New Sequence</button>
+                        <button class="btn btn-emerald btn-sm motion-req" onclick="App.saveCurrentAnimation()">Save to Flash</button>
+                    </div>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="anim-sidebar-box">
+                        <label>Stored LittleFS Animations:</label>
+                        <div class="anim-list" id="animFileList">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="anim-editor-box">
+                        <div class="form-group">
+                            <label>Animation ID Name:</label>
+                            <input type="text" id="animNameInput" class="form-control" value="wave_hello" placeholder="e.g. wave_hello">
+                        </div>
+
+                        <div class="timeline-header-flex">
+                            <label>Keyframes Timeline:</label>
+                            <button class="btn btn-cyan btn-sm" onclick="App.addKeyframe()">+ Add Keyframe</button>
+                        </div>
+
+                        <div class="timeline-container" id="timelineFrames">
+                            <!-- Keyframes rendered here -->
+                        </div>
+
+                        <div class="btn-group style-top-gap">
+                            <button class="btn btn-emerald motion-req" onclick="App.playCurrentAnimation()">▶ Play Animation</button>
+                            <button class="btn btn-danger motion-req" onclick="App.sendMotion('stop', 0, 0, 0)">■ Stop Playback</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. DIAGNOSTICS TAB -->
+        <section class="tab-pane" id="tab-diagnostics">
+            <div class="card">
+                <div class="card-header-flex">
+                    <h3>Robotics System Diagnostics Telemetry</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="App.fetchDiagnostics()">Refresh Metrics</button>
+                </div>
+                <div class="diag-table-container">
+                    <table class="diag-table">
+                        <thead>
+                            <tr>
+                                <th>Diagnostic Metric</th>
+                                <th>Telemetry Value</th>
+                                <th>Hardware Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diagTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. NETWORK SETTINGS TAB -->
+        <section class="tab-pane" id="tab-network">
+            <div class="card">
+                <h3>Wi-Fi Network Configuration</h3>
+                <form id="networkForm" onsubmit="App.saveNetworkSettings(event)">
+                    <div class="form-group">
+                        <label>Operation Mode:</label>
+                        <select id="netMode" class="form-control">
+                            <option value="AP">Access Point Mode (AP)</option>
+                            <option value="STA">Station Mode (Connect to Wi-Fi)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="card-header-flex">
+                            <label>Station Wi-Fi SSID:</label>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="App.scanNetworks()">Scan Networks</button>
+                        </div>
+                        <input type="text" id="netStaSsid" class="form-control" placeholder="Enter Wi-Fi SSID name">
+                        <div class="network-scan-results hidden" id="scanResultsBox"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Station Wi-Fi Password:</label>
+                        <input type="password" id="netStaPass" class="form-control" value="***" placeholder="Enter Wi-Fi password">
+                    </div>
+
+                    <div class="form-group">
+                        <label>mDNS Hostname:</label>
+                        <input type="text" id="netHostname" class="form-control" value="strider32">
+                    </div>
+
+                    <button type="submit" class="btn btn-cyan">Save Network Settings</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

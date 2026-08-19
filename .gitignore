@@ -1,0 +1,37 @@
+# PlatformIO & Build Artifacts
+.pio/
+.pioenvs/
+.piolibdeps/
+*.bin
+*.elf
+*.hex
+
+# Redundant / Generated Filesystem Staging
+firmware/data/
+
+# Python & Virtual Environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS & System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# Antigravity Internal Logs & Artifacts
+.system_generated/
+*.log
