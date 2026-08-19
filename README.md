@@ -1,16 +1,30 @@
 # Strider32 — ESP32 8-DOF Quadruped Robotics Platform & Web Control Center
 
 [![Firmware CI](https://github.com/Sayurugunath/strider32/actions/workflows/build.yml/badge.svg)](https://github.com/Sayurugunath/strider32/actions/workflows/build.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Sayurugunath/strider32?color=emerald)](https://github.com/Sayurugunath/strider32/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![PlatformIO](https://img.shields.io/badge/PlatformIO-ESP32-orange.svg)](https://platformio.org/)
+[![Flash Usage](https://img.shields.io/badge/Flash_Usage-58.7%25-brightgreen.svg)](docs/RELEASE_NOTES.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**Version:** 0.1.0 (v0.2 IK Engine Integration)  
-**Project Lead:** Sayuru Gunathilaka  
+[Quick Start](#-building--flashing-firmware) • 
+[API](docs/API_SPECIFICATION.md) • 
+[Architecture](docs/ARCHITECTURE.md) • 
+[Hardware](docs/HARDWARE_BOM.md) • 
+[Calibration](docs/CALIBRATION_GUIDE.md) • 
+[Contributing](CONTRIBUTING.md)
 
-An open-source, independently designed **ESP32 8-DOF micro-quadruped robotics platform** featuring analytical 3D Inverse Kinematics (IK), direct GPIO PWM servo actuation, a latched hardware E-STOP safety system, static/dynamic gait motion engines, a RESTful API, and an embedded Vanilla JavaScript Web Control Center served directly from ESP32 LittleFS flash storage.
+---
+
+## 📌 Project Status
+
+| Metric | Status | Details |
+|---|---|---|
+| **Current Release** | **v0.2.0** | 3D Inverse Kinematics Engine & Cartesian Trajectories |
+| **Software Stack** | **VERIFIED** | Firmware compiled with `0 errors, 0 warnings` (Flash: `58.7%`) |
+| **Physical Hardware** | **NOT YET HARDWARE VERIFIED** | Physical quadruped walking is pending physical hardware bring-up |
 
 > [!NOTE]
-> **Hardware Testing Notice:** Software verified; physical quadruped walking has not yet been hardware validated. The C++ firmware, 3D IK solver, REST API, Web HUD, and LittleFS storage architecture are fully verified via software compilation (`0 errors, 0 warnings`, `58.7% flash usage`).
+> **Hardware Testing Disclaimer:** Software verified; physical quadruped walking has not yet been hardware validated. The C++ firmware, 3D IK solver, REST API, Web HUD, and LittleFS storage architecture are fully verified via software compilation.
 
 ---
 
@@ -28,24 +42,22 @@ An open-source, independently designed **ESP32 8-DOF micro-quadruped robotics pl
 
 ---
 
-## 📐 Architecture & IK Coordinate System
+## 📐 Architecture & System Flow
 
+```mermaid
+graph TD
+    UI["💻 Web Control Center (HUD)\n(Vanilla ES6+ JS / HTML5 / CSS3)"] -->|HTTP REST API| API["⚡ ESPAsyncWebServer & ApiRoutes"]
+    API --> Config["💾 ConfigManager\n(LittleFS Storage)"]
+    API --> Diag["📊 Telemetry & Diagnostics"]
+    API --> Safety["🛡️ SafetySystem & E-STOP Guard"]
+    Safety --> Gait["🐾 GaitEngine & Motion Controller"]
+    Gait --> IK["📐 Kinematics\n(3D IK & FK Solvers)"]
+    IK --> HAL["🔌 IServoDriver HAL"]
+    HAL --> Direct["⚡ ESP32DirectServoDriver\n(LEDC PWM Channels 0-7)"]
+    HAL --> PCA["📟 PCA9685ServoDriver\n(Optional I2C Module)"]
 ```
-               [ Body Chassis ]
-                      |
-                      | Hip Origin (0, 0, 0)
-                      v
-                ( Coxa Joint )  <--- theta_coxa (horizontal plane)
-                      |
-                      |  <-- L1 (Coxa offset link = 30mm)
-                      v
-               ( Femur Joint )  <--- theta_femur (vertical elevation)
-                      \
-                       \  <-- L2 (Femur link = 60mm)
-                        \
-                         v
-                    ( Foot Tip ) (X, Y, Z)
-```
+
+### Leg Joint Conventions & Coordinate Mapping
 
 | Leg ID | Joint Index | Joint Name | Neutral Angle | Coordinate Mapping |
 |---|---|---|---|---|
@@ -110,6 +122,20 @@ Connect to the Strider32 Access Point (`SSID: Strider32-AP`) and open `http://19
 * `POST /api/v1/estop` & `POST /api/v1/estop/reset` — E-STOP trigger and latched reset.
 * `GET /api/v1/servos` & `POST /api/v1/servos/calibrate` — Calibration subtrim offsets.
 * `GET /api/v1/animations` & `POST /api/v1/animations` — LittleFS keyframe sequence CRUD.
+
+---
+
+## 🤝 Contributing Opportunities
+
+Contributions to Strider32 are welcome! Key areas for open-source contribution include:
+
+* 🎨 **3D CAD & Mechanical Frames:** Open-source 3D-printable leg and body chassis models.
+* 📐 **Advanced Kinematics:** Closed-loop IMU (MPU6050) auto-balancing and terrain adaptation.
+* 🎮 **Gamepad & Input Support:** WebHID / Gamepad API integration in the Web Control Center.
+* 📊 **Telemetry & WebSockets:** Real-time high-rate telemetry streaming for gait analysis.
+* 🛠️ **Animation Tooling:** Export/import keyframe animation utilities.
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and Pull Request guidelines.
 
 ---
 
