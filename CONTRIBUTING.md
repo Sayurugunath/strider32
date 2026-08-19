@@ -1,65 +1,73 @@
-# Contributing Guidelines
+# Contributing Guidelines for Strider32
 
-Thank you for your interest in contributing to the **ESP32 Quadruped Robotics Platform**!
-
----
-
-## 1. Development Setup
-
-### Prerequisites
-* **Python 3.8+**
-* **PlatformIO CLI Core:** Installed via `pip install platformio`
-* **VS Code (Optional):** Recommended IDE with the PlatformIO extension installed.
-
-### Hardware Prerequisites
-* **ESP32-WROOM-32** (30-pin DevKit board)
-* **8x Micro Servos** (SG90 / MG90S class)
-* **0.96" SSD1306 OLED Display** (I2C)
-* **5V 5A External Regulated BEC / Buck Converter** for servo power
-* **Normally-Open Switch** & 10kΩ Pull-Up Resistor (GPIO 34 E-STOP)
+Thank you for your interest in contributing to **Strider32 — ESP32 8-DOF Quadruped Robotics Platform**!
 
 ---
 
-## 2. Firmware Build & Flash Workflow
+## 🚀 10-Step Developer Workflow
 
-### Build Firmware
-```bash
-python -m platformio run -d "firmware"
-```
+Follow this step-by-step workflow when contributing bug fixes, features, or improvements to Strider32:
 
-### Upload Firmware Binary
-```bash
-python -m platformio run -t upload -d "firmware"
-```
-
-### Upload Web & LittleFS Filesystem Assets
-```bash
-python -m platformio run -t uploadfs -d "firmware"
-```
-
-### Launch Real-Time Serial Monitor
-```bash
-python -m platformio device monitor -d "firmware" -b 115200
-```
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/Sayurugunath/strider32.git
+   cd strider32
+   ```
+2. **Install Python:**
+   Ensure Python 3.8 or newer is installed on your development machine.
+3. **Install PlatformIO CLI Core:**
+   ```bash
+   pip install platformio
+   ```
+4. **Build Local Firmware:**
+   Verify compilation using PlatformIO CLI:
+   ```bash
+   python -m platformio run -d "firmware"
+   ```
+5. **Upload Firmware Binary (to Physical Hardware):**
+   ```bash
+   python -m platformio run -t upload -d "firmware"
+   ```
+6. **Upload LittleFS Filesystem Assets (Web HUD & Config):**
+   ```bash
+   python -m platformio run -t uploadfs -d "firmware"
+   ```
+7. **Run Serial Monitor:**
+   Inspect 115200 baud console telemetry:
+   ```bash
+   python -m platformio device monitor -d "firmware" -b 115200
+   ```
+8. **Make Code Changes:**
+   Implement your feature or fix in `firmware/src/`, `firmware/include/`, or `web/public/`.
+9. **Run Local Verification Build:**
+   Confirm your changes compile with **0 errors and 0 warnings**:
+   ```bash
+   python -m platformio run -d "firmware"
+   ```
+10. **Submit a Pull Request:**
+    Push your topic branch to GitHub and open a Pull Request using the PR template.
 
 ---
 
-## 3. Code Standards & Architecture Guidelines
+## ⚠️ Testing Expectations & Verification Classification
 
-1. **Non-Blocking Execution:** Avoid `delay()` calls inside `loop()` or motion updates. Use non-blocking timers (`millis()`).
-2. **Safety First:** All movement calls must be guarded by `safetySystem->canExecuteMotion()`. Never bypass safety checks.
-3. **Clean Abstractions:** Maintain hardware separation (`IServoDriver` interface). Do not tie gait logic directly to specific hardware pins or registers.
-4. **Web Frontend:** Use browser-native HTML5, CSS3, and Vanilla JavaScript (ES6+). Do not add heavy external node frameworks to keep LittleFS flash footprint minimal.
+> [!IMPORTANT]
+> **Hardware Testing Note:** Physical quadruped walking on real 8-servo hardware is currently **NOT HARDWARE TESTED / PENDING HARDWARE VALIDATION**.
 
----
+When submitting a Pull Request, contributors MUST explicitly classify their changes into:
 
-## 4. Submitting Pull Requests
-
-1. Fork the repository and create a feature branch (`git checkout -b feature/my-feature`).
-2. Ensure firmware compiles cleanly with **0 errors and 0 warnings**:
-   `python -m platformio run -d "firmware"`
-3. Push your branch and open a Pull Request with a clear description of changes.
+* **`SOFTWARE VERIFIED`**: Firmware build succeeds with 0 errors/0 warnings (`python -m platformio run -d firmware`), API endpoints respond correctly, unit/logic models verified.
+* **`HARDWARE VERIFIED`**: Verified on physical ESP32 board and 8-servo quadruped hardware.
 
 ---
 
-*Thank you for helping build accessible open-source quadruped robotics!*
+## 🛠️ Architecture & Coding Standards
+
+1. **Non-Blocking Execution:** Avoid blocking `delay()` calls inside `loop()` or motion routines. Use non-blocking timers (`millis()`).
+2. **Safety System Guarding:** All movement commands MUST check `safetySystem->canExecuteMotion()`. Never bypass safety limits or E-STOP state checks.
+3. **Hardware Abstraction Layer:** Maintain clean separation via `IServoDriver`.
+4. **Web Frontend:** Use browser-native HTML5, CSS3, and Vanilla JavaScript (ES6+). Do not add heavy external node frameworks to maintain the small LittleFS footprint (`< 60%` flash usage).
+
+---
+
+*Thank you for building accessible open-source quadruped robotics!*

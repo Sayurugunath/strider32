@@ -1,8 +1,11 @@
 # Strider32 — ESP32 8-DOF Quadruped Robotics Platform & Web Control Center
 
+[![Firmware CI](https://github.com/Sayurugunath/strider32/actions/workflows/build.yml/badge.svg)](https://github.com/Sayurugunath/strider32/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![PlatformIO](https://img.shields.io/badge/PlatformIO-ESP32-orange.svg)](https://platformio.org/)
+
 **Version:** 0.1.0  
 **Project Lead:** Sayuru Gunathilaka  
-**License:** Apache 2.0  
 
 An open-source, independently designed **ESP32 8-DOF micro-quadruped robotics platform** featuring direct GPIO PWM servo actuation, a latched hardware E-STOP safety system, static/dynamic gait motion engines, a RESTful API, and an embedded Vanilla JavaScript Web Control Center served directly from ESP32 LittleFS flash storage.
 
